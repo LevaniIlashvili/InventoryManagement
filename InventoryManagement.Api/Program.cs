@@ -1,4 +1,7 @@
 using InventoryManagement.Infrastructure;
+using InventoryManagement.Infrastructure.Persistence;
+using InventoryManagement.Infrastructure.Persistence.Seed;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +14,17 @@ builder.Services.AddOpenApi();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+    await DbInitializer.SeedAsync(context, roleManager);
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
