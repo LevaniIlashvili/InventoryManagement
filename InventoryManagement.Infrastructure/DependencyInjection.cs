@@ -1,12 +1,15 @@
 ﻿using InventoryManagement.Application.Interfaces.Infrastructure;
+using InventoryManagement.Application.Interfaces.Infrastructure.Repositories;
 using InventoryManagement.Infrastructure.Configuration;
-using InventoryManagement.Infrastructure.Data;
+using InventoryManagement.Infrastructure.Persistence;
+using InventoryManagement.Infrastructure.Persistence.Repositories;
 using InventoryManagement.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -80,6 +83,9 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IInventoryRepository, InventoryRepository>();
+        services.AddScoped<IInventoryTagRepository, InventoryTagRepository>();
+
         return services;
     }
 }
