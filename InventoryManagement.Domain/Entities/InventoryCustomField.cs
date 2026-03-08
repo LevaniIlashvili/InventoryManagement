@@ -18,6 +18,8 @@ public class InventoryCustomField
 
     public int Order { get; private set; }
 
+    public List<ItemFieldValue> ItemValues { get; set; } = new();
+
     private InventoryCustomField() { }
 
     internal InventoryCustomField(

@@ -10,5 +10,5 @@ public class ItemFieldValue
     public Guid InventoryCustomFieldId { get; set; }
     public InventoryCustomField CustomField { get; set; }
 
-
+    public string? Value { get; set; }
 }

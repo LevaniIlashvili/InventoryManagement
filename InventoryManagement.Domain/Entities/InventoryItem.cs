@@ -10,4 +10,6 @@ public class InventoryItem
     public Guid CreatedBy { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public string CustomId { get; set; }
+
+    public List<ItemFieldValue> Values { get; set; } 
 }

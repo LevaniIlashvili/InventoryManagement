@@ -24,6 +24,8 @@ public class Inventory
     private readonly List<InventoryCustomField> _customFields = new();
     public IReadOnlyCollection<InventoryCustomField> CustomFields => _customFields;
 
+    public List<InventoryAccess> AccessList { get; set; } = new();
+
     private Inventory() { }
 
     public Inventory(
