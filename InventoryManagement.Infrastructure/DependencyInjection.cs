@@ -1,4 +1,5 @@
-﻿using InventoryManagement.Application.Interfaces.Infrastructure;
+﻿using InventoryManagement.Application.Interfaces.Application;
+using InventoryManagement.Application.Interfaces.Infrastructure;
 using InventoryManagement.Application.Interfaces.Infrastructure.Repositories;
 using InventoryManagement.Infrastructure.Configuration;
 using InventoryManagement.Infrastructure.Persistence;
@@ -9,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -20,7 +20,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(
-            options => options.UseNpgsql(configuration.GetConnectionString("Default")));
+            options => options.UseNpgsql(configuration.GetConnectionString("Default"))
+            .EnableSensitiveDataLogging());
 
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
@@ -81,10 +82,12 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IInventoryRepository, InventoryRepository>();
         services.AddScoped<IInventoryTagRepository, InventoryTagRepository>();
+        services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
 
         return services;
     }

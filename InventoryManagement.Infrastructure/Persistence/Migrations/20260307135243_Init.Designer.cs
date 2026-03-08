@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InventoryManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260302135233_Init")]
+    [Migration("20260307135243_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -73,6 +73,25 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Inventories");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryAccess", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryId");
+
+                    b.ToTable("InventoryAccess");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryCategory", b =>
@@ -142,7 +161,8 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("CustomId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("InventoryId")
                         .HasColumnType("uuid");
@@ -171,6 +191,30 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("InventoryTags");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.ItemFieldValue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryCustomFieldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryCustomFieldId");
+
+                    b.HasIndex("InventoryItemId");
+
+                    b.ToTable("ItemFieldValue");
                 });
 
             modelBuilder.Entity("InventoryManagement.Infrastructure.ApplicationUser", b =>
@@ -410,6 +454,17 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryAccess", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Inventory", "Inventory")
+                        .WithMany("AccessList")
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inventory");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryCustomField", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.Inventory", "Inventory")
@@ -430,6 +485,25 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Inventory");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.ItemFieldValue", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.InventoryCustomField", "CustomField")
+                        .WithMany("ItemValues")
+                        .HasForeignKey("InventoryCustomFieldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagement.Domain.Entities.InventoryItem", "InventoryItem")
+                        .WithMany("Values")
+                        .HasForeignKey("InventoryItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomField");
+
+                    b.Navigation("InventoryItem");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -485,6 +559,8 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Inventory", b =>
                 {
+                    b.Navigation("AccessList");
+
                     b.Navigation("CustomFields");
 
                     b.Navigation("Items");
@@ -493,6 +569,16 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryCategory", b =>
                 {
                     b.Navigation("Inventories");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryCustomField", b =>
+                {
+                    b.Navigation("ItemValues");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.InventoryItem", b =>
+                {
+                    b.Navigation("Values");
                 });
 #pragma warning restore 612, 618
         }

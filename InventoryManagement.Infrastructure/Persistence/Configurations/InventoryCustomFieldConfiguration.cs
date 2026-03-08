@@ -30,5 +30,10 @@ public class InventoryCustomFieldConfiguration
 
         builder.Property(x => x.Order)
                .IsRequired();
+
+        builder.HasMany(i => i.ItemValues)
+            .WithOne(i => i.CustomField)
+            .HasForeignKey(i => i.InventoryCustomFieldId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

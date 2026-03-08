@@ -26,5 +26,10 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
         builder.HasMany(i => i.Tags)
             .WithMany(t => t.Inventories)
             .UsingEntity(j => j.ToTable("InventoryInventoryTag"));
+
+        builder.HasMany(i => i.Items)
+            .WithOne(i => i.Inventory)
+            .HasForeignKey(i => i.InventoryId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

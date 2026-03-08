@@ -210,6 +210,25 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InventoryAccess",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    InventoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InventoryAccess", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InventoryAccess_Inventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "InventoryCustomField",
                 columns: table => new
                 {
@@ -264,7 +283,7 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     InventoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    CustomId = table.Column<string>(type: "text", nullable: false)
+                    CustomId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -273,6 +292,32 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                         name: "FK_InventoryItems_Inventories_InventoryId",
                         column: x => x.InventoryId,
                         principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItemFieldValue",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    InventoryItemId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InventoryCustomFieldId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Value = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemFieldValue", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ItemFieldValue_InventoryCustomField_InventoryCustomFieldId",
+                        column: x => x.InventoryCustomFieldId,
+                        principalTable: "InventoryCustomField",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItemFieldValue_InventoryItems_InventoryItemId",
+                        column: x => x.InventoryItemId,
+                        principalTable: "InventoryItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -320,6 +365,11 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_InventoryAccess_InventoryId",
+                table: "InventoryAccess",
+                column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_InventoryCategories_Name",
                 table: "InventoryCategories",
                 column: "Name",
@@ -345,6 +395,16 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 table: "InventoryTags",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemFieldValue_InventoryCustomFieldId",
+                table: "ItemFieldValue",
+                column: "InventoryCustomFieldId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemFieldValue_InventoryItemId",
+                table: "ItemFieldValue",
+                column: "InventoryItemId");
         }
 
         /// <inheritdoc />
@@ -366,13 +426,13 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "InventoryCustomField");
+                name: "InventoryAccess");
 
             migrationBuilder.DropTable(
                 name: "InventoryInventoryTag");
 
             migrationBuilder.DropTable(
-                name: "InventoryItems");
+                name: "ItemFieldValue");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -382,6 +442,12 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "InventoryTags");
+
+            migrationBuilder.DropTable(
+                name: "InventoryCustomField");
+
+            migrationBuilder.DropTable(
+                name: "InventoryItems");
 
             migrationBuilder.DropTable(
                 name: "Inventories");
