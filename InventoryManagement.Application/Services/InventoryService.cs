@@ -13,15 +13,25 @@ public class InventoryService : IInventoryService
     private readonly IInventoryRepository _inventoryRepository;
     private readonly IInventoryTagRepository _inventoryTagRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IInventoryReadRepository _inventoryReadRepository;
 
     public InventoryService(
-        IInventoryRepository inventoryRepository, 
+        IInventoryRepository inventoryRepository,
         IInventoryTagRepository inventoryTagRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IInventoryReadRepository inventoryReadRepository)
     {
         _inventoryRepository = inventoryRepository;
         _inventoryTagRepository = inventoryTagRepository;
         _unitOfWork = unitOfWork;
+        _inventoryReadRepository = inventoryReadRepository;
+    }
+
+    public async Task<List<InventoryDTO>> GetUserInventoriesAsync(Guid userId)
+    {
+        var inventories = await _inventoryReadRepository.GetUserInventoriesAsync(userId);
+
+        return inventories;
     }
 
     public async Task<GetInventoryResponse> GetByIdAsync(Guid id)
@@ -93,17 +103,21 @@ public class InventoryService : IInventoryService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid userId, bool isAdmin, Guid inventoryId)
+    public async Task DeleteAsync(Guid userId, bool isAdmin, List<Guid> ids)
     {
-        var inventory = await _inventoryRepository.GetByIdAsync(inventoryId);
+        var inventories = await _inventoryRepository.GetByIdsAsync(ids);
 
-        if (inventory == null)
-            throw new NotFoundException("Inventory not found");
+        if (inventories == null || inventories.Count == 0)
+            throw new NotFoundException("Inventories not found");
 
-        if (!isAdmin && inventory.CreatedBy != userId)
-            throw new ForbiddenException("You don't have access to the inventory");
+        foreach (var inventory in inventories)
+        {
+            if (!isAdmin && inventory.CreatedBy != userId)
+                throw new ForbiddenException("You don't have access to the inventory");
 
-        _inventoryRepository.Delete(inventory);
+            _inventoryRepository.Delete(inventory);
+        }
+
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -200,5 +214,75 @@ public class InventoryService : IInventoryService
             await _inventoryTagRepository.AddRangeAsync(newTags);
 
         return existingTags.Concat(newTags).ToList();
+    }
+
+    public async Task<Guid> AddCustomIdElementAsync(
+        Guid userId,
+        bool isAdmin,
+        Guid inventoryId,
+        AddCustomIdElementRequest request)
+    {
+        var inventory = await _inventoryRepository.GetByIdAsync(inventoryId)
+            ?? throw new NotFoundException("Inventory not found");
+
+        if (!isAdmin && inventory.CreatedBy != userId)
+            throw new ForbiddenException("You don't have access");
+
+        var customIdElement = new CustomIdElement
+        {
+            Id = Guid.NewGuid(),
+            InventoryId = inventory.Id,
+            Order = request.Order,
+            Type = request.Type,
+            FixedText = request.FixedText,
+            Format =request.Format
+        };
+        
+        inventory.CustomIdElements.Add(customIdElement);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return customIdElement.Id;
+    }
+
+    public async Task UpdateCustomIdElementAsync(
+        Guid userId,
+        bool isAdmin,
+        Guid inventoryId,
+        Guid elementId,
+        UpdateCustomIdElementRequest request)
+    {
+        var inventory = await _inventoryRepository.GetByIdAsync(inventoryId)
+            ?? throw new NotFoundException("Inventory not found");
+
+        if (!isAdmin && inventory.CreatedBy != userId)
+            throw new ForbiddenException("You don't have access");
+
+        var elementToUpdate = inventory.CustomIdElements.FirstOrDefault(e => e.Id == elementId);
+
+        elementToUpdate.Order = request.Order;
+        elementToUpdate.Type = request.Type;
+        elementToUpdate.FixedText = request.FixedText;
+        elementToUpdate.Format = request.Format;
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task RemoveCustomIdElementsAsync(
+        Guid userId,
+        bool isAdmin,
+        Guid inventoryId,
+        List<Guid> elementIds)
+    {
+        throw new NotImplementedException();
+        //var inventory = await _inventoryRepository.GetByIdAsync(inventoryId)
+        //    ?? throw new NotFoundException("Inventory not found");
+
+        //if (!isAdmin && inventory.CreatedBy != userId)
+        //    throw new ForbiddenException("You don't have access");
+
+        //inventory.CustomIdElements.RemoveRange()
+
+        //await _unitOfWork.SaveChangesAsync();
     }
 }

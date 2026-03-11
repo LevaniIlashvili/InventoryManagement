@@ -210,6 +210,28 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CustomIdElement",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    InventoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    FixedText = table.Column<string>(type: "text", nullable: true),
+                    Format = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CustomIdElement", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CustomIdElement_Inventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "InventoryAccess",
                 columns: table => new
                 {
@@ -360,6 +382,11 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_CustomIdElement_InventoryId",
+                table: "CustomIdElement",
+                column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Inventories_CategoryId",
                 table: "Inventories",
                 column: "CategoryId");
@@ -386,9 +413,10 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                 column: "TagsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InventoryItems_InventoryId",
+                name: "IX_InventoryItems_InventoryId_CustomId",
                 table: "InventoryItems",
-                column: "InventoryId");
+                columns: new[] { "InventoryId", "CustomId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryTags_Name",
@@ -424,6 +452,9 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "CustomIdElement");
 
             migrationBuilder.DropTable(
                 name: "InventoryAccess");

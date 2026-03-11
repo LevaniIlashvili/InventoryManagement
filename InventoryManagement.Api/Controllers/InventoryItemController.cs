@@ -1,6 +1,5 @@
 ﻿using InventoryManagement.Application.DTOs.InventoryItem;
 using InventoryManagement.Application.Interfaces.Application;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -48,13 +47,13 @@ public class InventoryItemController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{itemId}")]
+    [HttpDelete]
     [Authorize]
-    public async Task<IActionResult> RemoveItem([FromRoute] Guid itemId)
+    public async Task<IActionResult> RemoveItems([FromBody] List<Guid> itemIds)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        await _inventoryItemService.RemoveItemAsync(Guid.Parse(userId), itemId);
+        await _inventoryItemService.RemoveItemsAsync(userId, itemIds);
 
         return NoContent();
     }

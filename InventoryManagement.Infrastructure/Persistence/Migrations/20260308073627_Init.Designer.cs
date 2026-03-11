@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InventoryManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260307135243_Init")]
+    [Migration("20260308073627_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -38,6 +38,34 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.HasIndex("TagsId");
 
                     b.ToTable("InventoryInventoryTag", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.CustomIdElement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FixedText")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Format")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("InventoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryId");
+
+                    b.ToTable("CustomIdElement");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Inventory", b =>
@@ -169,7 +197,8 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InventoryId");
+                    b.HasIndex("InventoryId", "CustomId")
+                        .IsUnique();
 
                     b.ToTable("InventoryItems");
                 });
@@ -443,6 +472,15 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.CustomIdElement", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Inventory", null)
+                        .WithMany("CustomIdElements")
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Inventory", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.InventoryCategory", "Category")
@@ -562,6 +600,8 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("AccessList");
 
                     b.Navigation("CustomFields");
+
+                    b.Navigation("CustomIdElements");
 
                     b.Navigation("Items");
                 });

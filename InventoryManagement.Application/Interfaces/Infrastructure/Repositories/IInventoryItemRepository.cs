@@ -9,4 +9,5 @@ public interface IInventoryItemRepository
     Task<Guid> AddItemAsync(InventoryItem item);
     void UpdateItem(InventoryItem item);
     void RemoveItem(InventoryItem item);
+    Task<int> GetNextSequence(Guid inventoryId);
 }

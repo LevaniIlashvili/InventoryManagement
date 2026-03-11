@@ -39,4 +39,14 @@ public class InventoryItemRepository : IInventoryItemRepository
     {
         _context.Update(item);
     }
+
+    public async Task<int> GetNextSequence(Guid inventoryId)
+    {
+        throw new NotImplementedException();
+        //var max = await _context.InventoryItems
+        //    .Where(i => i.InventoryId == inventoryId)
+        //    .MaxAsync(i => (int?)i.SequenceNumber) ?? 0;
+
+        //return max + 1;
+    }
 }

@@ -21,20 +21,34 @@ public class InventoryRepository : IInventoryRepository
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 
+    public async Task<List<Inventory>> GetByIdsAsync(List<Guid> ids)
+    {
+        return await _dbContext.Inventories
+            .Include(i => i.Tags)
+            .Include(i => i.CustomFields)
+            .Where(i => ids.Contains(i.Id))
+            .ToListAsync();
+    }
+
     public async Task<Guid> AddAsync(Inventory inventory)
     {
-        await _dbContext.AddAsync(inventory);
+        await _dbContext.Inventories.AddAsync(inventory);
 
         return inventory.Id;
     }
 
     public void Update(Inventory inventory)
     {
-        _dbContext.Update(inventory);
+        _dbContext.Inventories.Update(inventory);
     }
 
     public void Delete(Inventory inventory)
     {
-        _dbContext.Remove(inventory);
+        _dbContext.Inventories.Remove(inventory);
+    }
+
+    public void DeleteRange(List<Inventory> inventories)
+    {
+        _dbContext.Inventories.RemoveRange(inventories);
     }
 }

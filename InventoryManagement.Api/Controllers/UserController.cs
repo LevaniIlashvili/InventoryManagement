@@ -16,42 +16,50 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser([FromRoute] string id)
+    [HttpGet]
+    public async Task<IActionResult> GetUsers()
     {
-        await _userService.DeleteUserAsync(id);
+        var users = await _userService.GetUsersAsync();
+
+        return Ok(users);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteUsers([FromBody] List<string> ids)
+    {
+        await _userService.DeleteUsersAsync(ids);
 
         return NoContent();
     }
 
-    [HttpPost("{id}/block")]
-    public async Task<IActionResult> BlockUser([FromRoute] string id)
+    [HttpPost("block")]
+    public async Task<IActionResult> BlockUsers([FromBody] List<string> ids)
     {
-        await _userService.BlockUserAsync(id);
+        await _userService.BlockUsersAsync(ids);
 
         return NoContent();
     }
 
-    [HttpPost("{id}/unblock")]
-    public async Task<IActionResult> UnblockUser([FromRoute] string id)
+    [HttpPost("unblock")]
+    public async Task<IActionResult> UnblockUsers([FromBody] List<string> ids)
     {
-        await _userService.UnblockUserAsync(id);
+        await _userService.UnblockUsersAsync(ids);
 
         return NoContent();
     }
 
-    [HttpPost("{id}/grant-admin")]
-    public async Task<IActionResult> GrantAdmin([FromRoute] string id)
+    [HttpPost("grant-admin")]
+    public async Task<IActionResult> GrantAdmins([FromBody] List<string> ids)
     {
-        await _userService.GrantRoleAsync(id, "Admin");
+        await _userService.GrantRolesAsync(ids, "Admin");
 
         return NoContent();
     }
 
-    [HttpPost("{id}/revoke-admin")]
-    public async Task<IActionResult> RevokeAdmin([FromRoute] string id)
+    [HttpPost("revoke-admin")]
+    public async Task<IActionResult> RevokeAdmins([FromBody] List<string> ids)
     {
-        await _userService.RevokeRoleAsync(id, "Admin");
+        await _userService.RevokeRolesAsync(ids, "Admin");
 
         return NoContent();
     }

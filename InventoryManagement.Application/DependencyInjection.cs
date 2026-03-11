@@ -10,6 +10,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IInventoryItemService, InventoryItemService>();
+        services.AddScoped<ICustomIdGenerator, CustomIdGenerator>();
 
         return services;
     }

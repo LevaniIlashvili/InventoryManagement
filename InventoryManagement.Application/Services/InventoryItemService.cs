@@ -13,15 +13,18 @@ public class InventoryItemService : IInventoryItemService
     private readonly IInventoryItemRepository _inventoryItemRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IInventoryRepository _inventoryRepository;
+    private readonly ICustomIdGenerator _customIdGenerator;
 
     public InventoryItemService(
-        IInventoryItemRepository inventoryItemRepository, 
-        IUnitOfWork unitOfWork, 
-        IInventoryRepository inventoryRepository)
+        IInventoryItemRepository inventoryItemRepository,
+        IUnitOfWork unitOfWork,
+        IInventoryRepository inventoryRepository,
+        ICustomIdGenerator customIdGenerator)
     {
         _inventoryItemRepository = inventoryItemRepository;
         _unitOfWork = unitOfWork;
         _inventoryRepository = inventoryRepository;
+        _customIdGenerator = customIdGenerator;
     }
 
     public async Task<List<InventoryItemDTO>> GetItemsAsync(Guid inventoryId)
@@ -69,10 +72,10 @@ public class InventoryItemService : IInventoryItemService
         var item = new InventoryItem
         {
             Id = Guid.NewGuid(),
+            CustomId = await _customIdGenerator.GenerateId(inventory),
             InventoryId = request.InventoryId,
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedBy = userId,
-            CustomId = "",
             Values = request.CustomFieldValues.Select(cfv => new ItemFieldValue
             {
                 Id = Guid.NewGuid(),
@@ -88,22 +91,29 @@ public class InventoryItemService : IInventoryItemService
         return id;
     }
 
-    public async Task RemoveItemAsync(Guid userId, Guid itemId)
+    public async Task RemoveItemsAsync(Guid userId, List<Guid> itemIds)
     {
-       var item = await _inventoryItemRepository.GetByIdAsync(itemId);
+        foreach (var itemId in itemIds)
+        {
+            var item = await _inventoryItemRepository.GetByIdAsync(itemId);
 
-        if (item == null)
-            throw new NotFoundException("Item not found");
+            if (item == null)
+                throw new NotFoundException($"Item {itemId} not found");
 
-        var inventory = await _inventoryRepository.GetByIdAsync(item.InventoryId);
+            var inventory = await _inventoryRepository.GetByIdAsync(item.InventoryId);
 
-        if (inventory == null)
-            throw new NotFoundException("Inventory not found");
+            if (inventory == null)
+                throw new NotFoundException("Inventory not found");
 
-        if (!inventory.IsPublic && !inventory.AccessList.Any(a => a.UserId == userId) && inventory.CreatedBy != userId)
-            throw new ForbiddenException("You don't have write access");
+            if (!inventory.IsPublic &&
+                !inventory.AccessList.Any(a => a.UserId == userId) &&
+                inventory.CreatedBy != userId)
+            {
+                throw new ForbiddenException("You don't have write access");
+            }
 
-        _inventoryItemRepository.RemoveItem(item);
+            _inventoryItemRepository.RemoveItem(item);
+        }
 
         await _unitOfWork.SaveChangesAsync();
     }

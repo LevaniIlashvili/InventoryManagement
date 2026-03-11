@@ -1,3 +1,4 @@
+using InventoryManagement.Api.Middlewares;
 using InventoryManagement.Application;
 using InventoryManagement.Infrastructure;
 using InventoryManagement.Infrastructure.Persistence;
@@ -7,6 +8,16 @@ using Microsoft.AspNetCore.Identity;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173") // your React app
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -33,6 +44,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseCustomExceptionHandler();
+
+app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 

@@ -48,14 +48,14 @@ public class InventoryController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete]
     [Authorize(Roles = "User,Admin")]
-    public async Task<IActionResult> DeleteInventory([FromRoute] Guid id)
+    public async Task<IActionResult> DeleteInventories([FromBody] List<Guid> ids)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var isAdmin = User.IsInRole("Admin");
 
-        await _inventoryService.DeleteAsync(userId, isAdmin, id);
+        await _inventoryService.DeleteAsync(userId, isAdmin, ids);
 
         return NoContent();
     }
@@ -114,5 +114,72 @@ public class InventoryController : ControllerBase
             ids);
 
         return NoContent();
+    }
+
+    [HttpPost("{inventoryId}/custom-id-elements")]
+    [Authorize(Roles = "User,Admin")]
+    public async Task<ActionResult<Guid>> AddCustomIdElement(
+        [FromRoute] Guid inventoryId,
+        [FromBody] AddCustomIdElementRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var isAdmin = User.IsInRole("Admin");
+
+        var id = await _inventoryService.AddCustomIdElementAsync(
+            userId,
+            isAdmin,
+            inventoryId,
+            request);
+
+        return Ok(id);
+    }
+
+    [HttpPut("{inventoryId}/custom-id-elements/{elementId}")]
+    [Authorize(Roles = "User,Admin")]
+    public async Task<IActionResult> UpdateCustomIdElement(
+        [FromRoute] Guid inventoryId,
+        [FromRoute] Guid elementId,
+        [FromBody] UpdateCustomIdElementRequest request)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var isAdmin = User.IsInRole("Admin");
+
+        await _inventoryService.UpdateCustomIdElementAsync(
+            userId,
+            isAdmin,
+            inventoryId,
+            elementId,
+            request);
+
+        return NoContent();
+    }
+
+    [HttpDelete("{inventoryId}/custom-id-elements")]
+    [Authorize(Roles = "User,Admin")]
+    public async Task<IActionResult> DeleteCustomIdElements(
+        [FromRoute] Guid inventoryId,
+        [FromBody] List<Guid> ids)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var isAdmin = User.IsInRole("Admin");
+
+        await _inventoryService.RemoveCustomIdElementsAsync(
+            userId,
+            isAdmin,
+            inventoryId,
+            ids);
+
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpGet("/api/user/inventories")]
+    public async Task<ActionResult<List<InventoryDTO>>> GetUserInventories()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var inventories = await _inventoryService.GetUserInventoriesAsync(userId);
+
+        return Ok(inventories);
     }
 }

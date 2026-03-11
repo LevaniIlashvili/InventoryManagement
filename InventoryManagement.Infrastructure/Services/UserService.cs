@@ -1,5 +1,7 @@
-﻿using InventoryManagement.Application.Exceptionsl;
+﻿using InventoryManagement.Application.DTOs.User;
+using InventoryManagement.Application.Exceptionsl;
 using InventoryManagement.Application.Interfaces.Application;
+using InventoryManagement.Application.Interfaces.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 
 namespace InventoryManagement.Infrastructure.Services;
@@ -7,88 +9,99 @@ namespace InventoryManagement.Infrastructure.Services;
 public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserReadRepository _userReadRepository;
 
-    public UserService(UserManager<ApplicationUser> userManager)
+    public UserService(UserManager<ApplicationUser> userManager, IUserReadRepository userReadRepository)
     {
         _userManager = userManager;
+        _userReadRepository = userReadRepository;
     }
 
-    public async Task DeleteUserAsync(string id)
+    public async Task<List<UserDTO>> GetUsersAsync()
     {
-        var user = await _userManager.FindByIdAsync(id);
-
-        if (user == null)
-        {
-            throw new NotFoundException("User not found");
-        }
-
-        var result = await _userManager.DeleteAsync(user);
-
-        if (!result.Succeeded)
-            throw new InvalidOperationException();
+        return await _userReadRepository.GetUsersAsync();
     }
 
-    public async Task BlockUserAsync(string id)
+    public async Task DeleteUsersAsync(List<string> ids)
     {
-        var user = await _userManager.FindByIdAsync(id);
-
-        if (user == null)
+        foreach (var id in ids)
         {
-            throw new NotFoundException("User not found");
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                throw new NotFoundException($"User {id} not found");
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(',', result.Errors));
         }
-
-        user.IsBlocked = true;
-
-        var result = await _userManager.UpdateAsync(user);
-
-        if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join(',', result.Errors));
     }
 
-    public async Task UnblockUserAsync(string id)
+    public async Task BlockUsersAsync(List<string> ids)
     {
-        var user = await _userManager.FindByIdAsync(id);
-
-        if (user == null)
+        foreach (var id in ids)
         {
-            throw new NotFoundException("User not found");
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                throw new NotFoundException($"User {id} not found");
+
+            user.IsBlocked = true;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(',', result.Errors));
         }
+    }
+    public async Task UnblockUsersAsync(List<string> ids)
+    {
+        foreach (var id in ids)
+        {
+            var user = await _userManager.FindByIdAsync(id);
 
-        user.IsBlocked = false;
+            if (user == null)
+                throw new NotFoundException($"User {id} not found");
 
-        var result = await _userManager.UpdateAsync(user);
+            user.IsBlocked = false;
 
-        if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join(',', result.Errors));
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(',', result.Errors));
+        }
     }
 
-    public async Task GrantRoleAsync(string userId, string role)
+    public async Task GrantRolesAsync(List<string> ids, string role)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-
-        if (user == null)
+        foreach (var id in ids)
         {
-            throw new NotFoundException("User not found");
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                throw new NotFoundException($"User {id} not found");
+
+            var result = await _userManager.AddToRoleAsync(user, role);
+
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(',', result.Errors));
         }
-
-        var result = await _userManager.AddToRoleAsync(user, role);
-
-        if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join(',', result.Errors));
     }
 
-    public async Task RevokeRoleAsync(string userId, string role)
+    public async Task RevokeRolesAsync(List<string> ids, string role)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-
-        if (user == null)
+        foreach (var id in ids)
         {
-            throw new NotFoundException("User not found");
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                throw new NotFoundException($"User {id} not found");
+
+            var result = await _userManager.RemoveFromRoleAsync(user, role);
+
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(',', result.Errors));
         }
-
-        var result = await _userManager.RemoveFromRoleAsync(user, role);
-
-        if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join(',', result.Errors));
     }
 }

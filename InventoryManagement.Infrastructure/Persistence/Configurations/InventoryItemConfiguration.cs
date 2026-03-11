@@ -16,6 +16,9 @@ public class InventoryItemConfiguration : IEntityTypeConfiguration<InventoryItem
         builder.Property(i => i.CreatedAt)
                .IsRequired();
 
+        builder.HasIndex(i => new { i.InventoryId, i.CustomId })
+            .IsUnique();
+
         builder.HasMany(i => i.Values)
                .WithOne(v => v.InventoryItem)
                .HasForeignKey(v => v.InventoryItemId)

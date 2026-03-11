@@ -26,6 +26,8 @@ public class Inventory
 
     public List<InventoryAccess> AccessList { get; set; } = new();
 
+    public List<CustomIdElement> CustomIdElements { get; set; }
+
     private Inventory() { }
 
     public Inventory(

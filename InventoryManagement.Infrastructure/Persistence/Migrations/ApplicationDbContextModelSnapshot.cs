@@ -37,6 +37,34 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("InventoryInventoryTag", (string)null);
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.CustomIdElement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FixedText")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Format")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("InventoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryId");
+
+                    b.ToTable("CustomIdElement");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Inventory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -166,7 +194,8 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InventoryId");
+                    b.HasIndex("InventoryId", "CustomId")
+                        .IsUnique();
 
                     b.ToTable("InventoryItems");
                 });
@@ -440,6 +469,15 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.CustomIdElement", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Inventory", null)
+                        .WithMany("CustomIdElements")
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Inventory", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.InventoryCategory", "Category")
@@ -559,6 +597,8 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("AccessList");
 
                     b.Navigation("CustomFields");
+
+                    b.Navigation("CustomIdElements");
 
                     b.Navigation("Items");
                 });
