@@ -7,13 +7,15 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var frontendUrl = builder.Configuration["FrontendUrl"];
+
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173") // your React app
+            policy.WithOrigins("http://localhost:5173", frontendUrl!)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
