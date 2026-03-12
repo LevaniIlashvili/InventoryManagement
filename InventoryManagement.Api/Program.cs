@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 var frontendUrl = builder.Configuration["FrontendUrl"];
 
+Console.WriteLine("frontend url " + frontendUrl);
+
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
