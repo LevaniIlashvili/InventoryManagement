@@ -49,9 +49,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors("AllowReactApp");
+
 app.UseCustomExceptionHandler();
 
-app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 
