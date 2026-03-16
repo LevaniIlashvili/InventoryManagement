@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InventoryManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260308073627_Init")]
+    [Migration("20260314091532_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -43,7 +43,6 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("InventoryManagement.Domain.Entities.CustomIdElement", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("FixedText")
@@ -77,8 +76,14 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("CurrentSequence")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -474,11 +479,13 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.CustomIdElement", b =>
                 {
-                    b.HasOne("InventoryManagement.Domain.Entities.Inventory", null)
+                    b.HasOne("InventoryManagement.Domain.Entities.Inventory", "Inventory")
                         .WithMany("CustomIdElements")
                         .HasForeignKey("InventoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Inventory");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Inventory", b =>

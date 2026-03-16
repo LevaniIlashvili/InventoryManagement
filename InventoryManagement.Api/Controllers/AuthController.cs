@@ -3,6 +3,9 @@ using InventoryManagement.Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
+using System.Text.Json;
 
 namespace InventoryManagement.Api.Controllers;
 
@@ -12,11 +15,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(IAuthService authService, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService, ILogger<AuthController> logger, IConfiguration configuration)
     {
         _authService = authService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -121,7 +126,19 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.HandleExternalLoginAsync(externalLoginRequest);
-            return Ok(response);
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(response, jsonOptions);
+
+            var base64Response = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(jsonResponse));
+
+            var frontendRedirectUrl = $"{_configuration["FrontendUrl"]}/oauth-callback?data={base64Response}";
+
+            return Redirect(frontendRedirectUrl);
         }
         catch (Exception ex)
         {
@@ -181,7 +198,18 @@ public class AuthController : ControllerBase
         try
         {
             var response = await _authService.HandleExternalLoginAsync(externalLoginRequest);
-            return Ok(response);
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(response, jsonOptions);
+            var base64Response = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(jsonResponse));
+
+            var frontendRedirectUrl = $"{_configuration["FrontendUrl"]}/oauth-callback?data={base64Response}";
+
+            return Redirect(frontendRedirectUrl);
         }
         catch (Exception ex)
         {

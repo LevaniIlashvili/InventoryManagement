@@ -26,6 +26,37 @@ public class InventoryService : IInventoryService
         _unitOfWork = unitOfWork;
         _inventoryReadRepository = inventoryReadRepository;
     }
+    
+    public async Task<List<InventoryDTO>> GetInventoriesByTagAsync(string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+            return new List<InventoryDTO>();
+
+        return await _inventoryReadRepository.GetInventoriesByTagAsync(tag);
+    }
+
+    public async Task<List<InventoryDTO>> SearchInventoriesAsync(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return new List<InventoryDTO>();
+
+        return await _inventoryReadRepository.SearchInventoriesAsync(searchTerm);
+    }
+
+    public async Task<GetInventoryStatisticsResponse> GetInventoryStatisticsAsync(Guid inventoryId)
+    {
+        return await _inventoryReadRepository.GetInventoryStatisticsAsync(inventoryId);
+    }
+
+    public async Task<List<InventoryDTO>> GetLatestInventoriesAsync()
+    {
+        return await _inventoryReadRepository.GetLatestInventoriesAsync();
+    }
+
+    public async Task<List<InventoryDTO>> GetPopularInventoriesAsync()
+    {
+        return await _inventoryReadRepository.GetPopularInventoriesAsync();
+    }
 
     public async Task<List<InventoryDTO>> GetUserInventoriesAsync(Guid userId)
     {
@@ -59,7 +90,9 @@ public class InventoryService : IInventoryService
                 f.Description,
                 f.ShouldBeDisplayed,
                 f.Type,
-                f.Order)).ToList());
+                f.Order)).ToList(),
+            inventory.CustomIdElements.Select(e => new CustomIdElementDTO(
+                e.Id, e.Order, e.Type, e.FixedText, e.Format)).ToList());
     }
 
     public async Task<Guid> CreateAsync(Guid userId, CreateInventoryRequest request)
@@ -269,20 +302,26 @@ public class InventoryService : IInventoryService
     }
 
     public async Task RemoveCustomIdElementsAsync(
-        Guid userId,
-        bool isAdmin,
-        Guid inventoryId,
-        List<Guid> elementIds)
+           Guid userId,
+           bool isAdmin,
+           Guid inventoryId,
+           List<Guid> elementIds)
     {
-        throw new NotImplementedException();
-        //var inventory = await _inventoryRepository.GetByIdAsync(inventoryId)
-        //    ?? throw new NotFoundException("Inventory not found");
+        var inventory = await _inventoryRepository.GetByIdAsync(inventoryId)
+            ?? throw new NotFoundException("Inventory not found");
 
-        //if (!isAdmin && inventory.CreatedBy != userId)
-        //    throw new ForbiddenException("You don't have access");
+        if (!isAdmin && inventory.CreatedBy != userId)
+            throw new ForbiddenException("You don't have access");
 
-        //inventory.CustomIdElements.RemoveRange()
+        var elementsToRemove = inventory.CustomIdElements
+            .Where(e => elementIds.Contains(e.Id))
+            .ToList();
 
-        //await _unitOfWork.SaveChangesAsync();
+        foreach (var element in elementsToRemove)
+        {
+            inventory.CustomIdElements.Remove(element);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
     }
 }

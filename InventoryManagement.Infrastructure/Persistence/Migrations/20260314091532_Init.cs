@@ -196,7 +196,9 @@ namespace InventoryManagement.Infrastructure.Persistence.Migrations
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    IsPublic = table.Column<bool>(type: "boolean", nullable: false)
+                    IsPublic = table.Column<bool>(type: "boolean", nullable: false),
+                    CurrentSequence = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

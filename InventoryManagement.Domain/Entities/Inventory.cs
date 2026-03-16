@@ -1,4 +1,5 @@
 ﻿using InventoryManagement.Domain.Exceptions;
+using System.ComponentModel.DataAnnotations;
 
 namespace InventoryManagement.Domain.Entities;
 
@@ -18,6 +19,10 @@ public class Inventory
     public List<InventoryTag> Tags { get; private set; } = new();
     public string? ImageUrl { get; private set; }
     public bool IsPublic { get; private set; }
+
+    public int CurrentSequence { get; set; } = 1;
+
+    public DateTimeOffset CreatedAt { get; set; }
 
     public List<InventoryItem> Items { get; private set; } = new();
 
@@ -46,6 +51,7 @@ public class Inventory
         CategoryId = categoryId;
         ImageUrl = imageUrl;
         IsPublic = isPublic;
+        CreatedAt = DateTimeOffset.UtcNow;
     }
 
     public void UpdateDetails(

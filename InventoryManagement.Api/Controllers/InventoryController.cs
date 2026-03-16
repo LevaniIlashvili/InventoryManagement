@@ -17,6 +17,44 @@ public class InventoryController : ControllerBase
         _inventoryService = inventoryService;
     }
 
+    [HttpGet("by-tag")]
+    public async Task<ActionResult<List<InventoryDTO>>> GetByTag([FromQuery] string tag)
+    {
+        var results = await _inventoryService.GetInventoriesByTagAsync(tag);
+        return Ok(results);
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<List<InventoryDTO>>> Search([FromQuery] string q)
+    {
+        var results = await _inventoryService.SearchInventoriesAsync(q);
+        return Ok(results);
+    }
+
+    [HttpGet("{id}/statistics")]
+    public async Task<ActionResult<GetInventoryStatisticsResponse>> GetInventoryStatistics([FromRoute] Guid id)
+    {
+        var inventoryStatistics = await _inventoryService.GetInventoryStatisticsAsync(id);
+
+        return Ok(inventoryStatistics);
+    }
+     
+    [HttpGet("latest")]
+    public async Task<ActionResult<List<InventoryDTO>>> GetLatestInventories()
+    {
+        var inventories = await _inventoryService.GetLatestInventoriesAsync();
+
+        return Ok(inventories);
+    }
+
+    [HttpGet("popular")]
+    public async Task<ActionResult<List<InventoryDTO>>> GetPopularInventories()
+    {
+        var inventories = await _inventoryService.GetPopularInventoriesAsync();
+
+        return Ok(inventories);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<GetInventoryResponse>> GetInventory([FromRoute] Guid id)
     {

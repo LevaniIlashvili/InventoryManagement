@@ -4,6 +4,11 @@ namespace InventoryManagement.Application.Interfaces.Application;
 
 public interface IInventoryService
 {
+    Task<List<InventoryDTO>> GetInventoriesByTagAsync(string tag);
+    Task<List<InventoryDTO>> SearchInventoriesAsync(string searchTerm);
+    Task<GetInventoryStatisticsResponse> GetInventoryStatisticsAsync(Guid inventoryId);
+    Task<List<InventoryDTO>> GetPopularInventoriesAsync();
+    Task<List<InventoryDTO>> GetLatestInventoriesAsync();
     Task<List<InventoryDTO>> GetUserInventoriesAsync(Guid userId);
     Task<GetInventoryResponse> GetByIdAsync(Guid id);
     Task<Guid> CreateAsync(Guid userId, CreateInventoryRequest request);

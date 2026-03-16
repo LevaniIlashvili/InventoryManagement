@@ -11,6 +11,7 @@ public static class DependencyInjection
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IInventoryItemService, InventoryItemService>();
         services.AddScoped<ICustomIdGenerator, CustomIdGenerator>();
+        services.AddScoped<ICategoryService, CategoryService>();
 
         return services;
     }

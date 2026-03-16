@@ -16,6 +16,12 @@ public class CustomIdGenerator : ICustomIdGenerator
 
     public async Task<string> GenerateId(Inventory inventory)
     {
+        if (inventory.CustomIdElements == null || !inventory.CustomIdElements.Any())
+        {
+            var defaultSeq = await _itemRepository.GetNextSequence(inventory.Id);
+            return defaultSeq.ToString();
+        }
+
         var parts = new List<string>();
 
         foreach (var element in inventory.CustomIdElements.OrderBy(e => e.Order))
@@ -52,17 +58,21 @@ public class CustomIdGenerator : ICustomIdGenerator
                     break;
 
                 case CustomIdElementType.Sequence:
-
-                    var seq = await _itemRepository
-                        .GetNextSequence(inventory.Id);
-
+                    var seq = await _itemRepository.GetNextSequence(inventory.Id);
                     if (!string.IsNullOrEmpty(element.Format))
                         parts.Add(seq.ToString(element.Format));
                     else
                         parts.Add(seq.ToString());
-
                     break;
             }
+        }
+
+        bool onlyFixedText = inventory.CustomIdElements.All(e => e.Type == CustomIdElementType.FixedText);
+
+        if (onlyFixedText)
+        {
+            var fallbackSeq = await _itemRepository.GetNextSequence(inventory.Id);
+            parts.Add(fallbackSeq.ToString());
         }
 
         return string.Join("", parts);

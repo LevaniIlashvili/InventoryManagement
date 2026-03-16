@@ -27,7 +27,11 @@ public class InventoryItemRepository : IInventoryItemRepository
 
     public Task<List<InventoryItem>> GetByInventoryId(Guid inventoryId)
     {
-        return _context.InventoryItems.Include(i => i.Values).Where(i => i.InventoryId == inventoryId).ToListAsync();
+        return _context.InventoryItems
+            .OrderByDescending(i => i.CreatedAt)
+            .Include(i => i.Values)
+            .Where(i => i.InventoryId == inventoryId)
+            .ToListAsync();
     }
 
     public void RemoveItem(InventoryItem item)
@@ -42,11 +46,34 @@ public class InventoryItemRepository : IInventoryItemRepository
 
     public async Task<int> GetNextSequence(Guid inventoryId)
     {
-        throw new NotImplementedException();
-        //var max = await _context.InventoryItems
-        //    .Where(i => i.InventoryId == inventoryId)
-        //    .MaxAsync(i => (int?)i.SequenceNumber) ?? 0;
+        int maxRetries = 5;
 
-        //return max + 1;
+        for (int attempt = 0; attempt < maxRetries; attempt++)
+        {
+            var inventory = await _context.Inventories
+                .FirstOrDefaultAsync(i => i.Id == inventoryId);
+
+            if (inventory == null)
+                throw new InvalidOperationException("Inventory not found.");
+
+            int allocatedSequence = inventory.CurrentSequence;
+            inventory.CurrentSequence++;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                return allocatedSequence;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                _context.Entry(inventory).State = EntityState.Detached;
+
+                if (attempt == maxRetries - 1)
+                    throw new Exception("High concurrency prevented sequence generation. Please try again.");
+            }
+        }
+
+        throw new Exception("Failed to generate sequence.");
     }
 }

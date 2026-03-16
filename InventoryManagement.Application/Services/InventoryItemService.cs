@@ -57,17 +57,49 @@ public class InventoryItemService : IInventoryItemService
         if (!inventory.IsPublic && !inventory.AccessList.Any(a => a.UserId == userId) && inventory.CreatedBy != userId)
             throw new ForbiddenException("You don't have write access");
 
-        var inventoryCustomFieldIds = inventory.CustomFields
-            .Select(f => f.Id)
-            .ToHashSet();
+        var fieldDictionary = inventory.CustomFields.ToDictionary(f => f.Id, f => f);
 
         var invalidFieldIds = request.CustomFieldValues
             .Select(v => v.InventoryCustomFieldId)
-            .Except(inventoryCustomFieldIds)
+            .Except(fieldDictionary.Keys)
             .ToList();
 
         if (invalidFieldIds.Any())
             throw new NotFoundException($"Custom fields not found: {string.Join(",", invalidFieldIds)}");
+
+        var validationErrors = new List<string>();
+
+        foreach (var cfv in request.CustomFieldValues)
+        {
+            if (string.IsNullOrWhiteSpace(cfv.Value))
+                continue;
+
+            var fieldDef = fieldDictionary[cfv.InventoryCustomFieldId];
+
+            switch (fieldDef.Type)
+            {
+                case FieldType.Number:
+                    if (!decimal.TryParse(cfv.Value, out _))
+                        validationErrors.Add($"Field '{fieldDef.Title}' must be a valid number.");
+                    break;
+
+                case FieldType.Boolean:
+                    if (!bool.TryParse(cfv.Value, out _))
+                        validationErrors.Add($"Field '{fieldDef.Title}' must be true or false.");
+                    break;
+
+                case FieldType.SingleLineText:
+                    if (cfv.Value.Contains('\n') || cfv.Value.Contains('\r'))
+                        validationErrors.Add($"Field '{fieldDef.Title}' cannot contain multiple lines.");
+                    break;
+
+            }
+        }
+
+        if (validationErrors.Any())
+        {
+            throw new BadRequestException(string.Join(" ", validationErrors));
+        }
 
         var item = new InventoryItem
         {

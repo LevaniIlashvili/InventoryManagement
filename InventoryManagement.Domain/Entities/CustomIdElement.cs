@@ -10,4 +10,6 @@ public class CustomIdElement
     public CustomIdElementType Type { get; set; }
     public string? FixedText { get; set; }
     public string? Format { get; set; }
+
+    public Inventory Inventory { get; set; }
 }

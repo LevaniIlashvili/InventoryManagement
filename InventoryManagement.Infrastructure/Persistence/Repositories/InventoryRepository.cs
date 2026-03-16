@@ -18,6 +18,7 @@ public class InventoryRepository : IInventoryRepository
         return await _dbContext.Inventories
             .Include(i => i.Tags)
             .Include(i => i.CustomFields)
+            .Include(i => i.CustomIdElements)
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 

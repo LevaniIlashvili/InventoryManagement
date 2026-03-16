@@ -9,4 +9,5 @@ public sealed record GetInventoryResponse(
     string? ImageUrl,
     bool IsPublic,
     List<InventoryTagDTO> Tags,
-    List<InventoryCustomFieldDTO> CustomFields);
+    List<InventoryCustomFieldDTO> CustomFields,
+    List<CustomIdElementDTO> CustomIdElements);

@@ -90,6 +90,7 @@ public static class DependencyInjection
         services.AddScoped<IInventoryTagRepository, InventoryTagRepository>();
         services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
         services.AddScoped<IUserReadRepository, UserReadRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
 
         return services;
     }

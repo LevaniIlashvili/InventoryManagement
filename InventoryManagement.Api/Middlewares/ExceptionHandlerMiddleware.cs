@@ -1,4 +1,5 @@
-﻿using InventoryManagement.Application.Exceptionsl;
+﻿using InventoryManagement.Application.Exceptions;
+using InventoryManagement.Application.Exceptionsl;
 using InventoryManagement.Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
@@ -50,7 +51,7 @@ public class ExceptionHandlerMiddleware
             //    });
             //    break;
 
-            case DomainException:
+            case DomainException or BadRequestException:
                 httpStatusCode = HttpStatusCode.BadRequest;
                 break;
             case NotFoundException:
