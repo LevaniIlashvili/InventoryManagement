@@ -4,6 +4,8 @@ namespace InventoryManagement.Application.Interfaces.Application;
 
 public interface IInventoryService
 {
+    Task RemoveUserFromAccessList(Guid removerId, bool isAdmin, Guid inventoryId, Guid userIdBeingRemoved);
+    Task AddUserToAccessList(Guid adderId, bool isAdmin, Guid inventoryId, Guid userIdBeingAdded);
     Task<List<InventoryDTO>> GetInventoriesByTagAsync(string tag);
     Task<List<InventoryDTO>> SearchInventoriesAsync(string searchTerm);
     Task<GetInventoryStatisticsResponse> GetInventoryStatisticsAsync(Guid inventoryId);

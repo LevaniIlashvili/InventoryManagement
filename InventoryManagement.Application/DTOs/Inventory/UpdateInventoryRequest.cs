@@ -1,7 +1,11 @@
-﻿namespace InventoryManagement.Application.DTOs.Inventory;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace InventoryManagement.Application.DTOs.Inventory;
 
 public sealed record UpdateInventoryRequest(
+    [MinLength(3)]
     string Title,
+    [MinLength(3)]
     string Description,
     Guid CategoryId,
     string? ImageUrl,

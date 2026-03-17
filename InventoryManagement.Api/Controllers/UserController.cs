@@ -1,5 +1,7 @@
-﻿using InventoryManagement.Application.Interfaces.Application;
+﻿using InventoryManagement.Application.DTOs;
+using InventoryManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagement.Api.Controllers;
@@ -14,6 +16,17 @@ public class UserController : ControllerBase
     public UserController(IUserService userService)
     {
         _userService = userService;
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+            return Ok(new List<UserDto>());
+
+        var users = await _userService.SearchUsersAsync(q);
+
+        return Ok(users);
     }
 
     [HttpGet]

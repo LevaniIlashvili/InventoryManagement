@@ -4,6 +4,7 @@ namespace InventoryManagement.Application.Interfaces.Application;
 
 public interface IUserService
 {
+    Task<List<UserDTO>> SearchUsersAsync(string q);
     Task<List<UserDTO>> GetUsersAsync();
     Task DeleteUsersAsync(List<string> ids);
     Task BlockUsersAsync(List<string> ids);

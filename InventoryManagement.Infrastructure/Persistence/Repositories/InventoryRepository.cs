@@ -19,6 +19,7 @@ public class InventoryRepository : IInventoryRepository
             .Include(i => i.Tags)
             .Include(i => i.CustomFields)
             .Include(i => i.CustomIdElements)
+            .Include(i => i.AccessList)
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 

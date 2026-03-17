@@ -4,6 +4,7 @@ namespace InventoryManagement.Application.Interfaces.Infrastructure.Repositories
 
 public interface IInventoryReadRepository
 {
+    Task<GetInventoryResponse> GetByIdAsync(Guid id);
     Task<List<InventoryDTO>> GetInventoriesByTagAsync(string tag);
     Task<List<InventoryDTO>> SearchInventoriesAsync(string searchTerm);
     Task<GetInventoryStatisticsResponse> GetInventoryStatisticsAsync(Guid inventoryId);

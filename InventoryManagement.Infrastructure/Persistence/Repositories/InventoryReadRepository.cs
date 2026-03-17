@@ -1,4 +1,5 @@
 ﻿using InventoryManagement.Application.DTOs.Inventory;
+using InventoryManagement.Application.DTOs.User;
 using InventoryManagement.Application.Exceptionsl;
 using InventoryManagement.Application.Interfaces.Infrastructure.Repositories;
 using InventoryManagement.Domain.Entities;
@@ -15,6 +16,49 @@ public class InventoryReadRepository : IInventoryReadRepository
         _dbContext = dbContext;
     }
 
+    public async Task<GetInventoryResponse?> GetByIdAsync(Guid id)
+    {
+        var inventory = await _dbContext.Inventories
+            .Where(i => i.Id == id)
+            .Select(i => new GetInventoryResponse(
+                i.Id,
+                i.Title,
+                i.Description,
+                i.CreatedBy,
+                i.CategoryId,
+                i.ImageUrl,
+                i.IsPublic,
+                i.Tags.Select(t => new InventoryTagDTO(t.Id, t.Name)).ToList(),
+
+                i.CustomFields.Select(f => new InventoryCustomFieldDTO(
+                    f.Id, f.InventoryId, f.Title, f.Description, f.ShouldBeDisplayed, f.Type, f.Order)).ToList(),
+
+                i.CustomIdElements.Select(e => new CustomIdElementDTO(
+                    e.Id, e.Order, e.Type, e.FixedText, e.Format)).ToList(),
+
+                i.AccessList.Select(a => new InventoryAccessDTO(
+                    a.Id,
+                    a.UserId,
+                    _dbContext.Users
+                        .Where(u => u.Id == a.UserId.ToString())
+                        .Select(u => new UserDTO(
+                            u.Id,
+                            u.FirstName,
+                            u.LastName,
+                            u.UserName,
+                            u.Email,
+                            u.IsBlocked,
+                            (DateTimeOffset)u.CreatedAt,
+                            u.ProfilePictureUrl
+                        ))
+                        .FirstOrDefault()
+                )).ToList()
+            ))
+            .FirstOrDefaultAsync();
+
+        return inventory;
+    }
+
     public async Task<List<InventoryDTO>> GetInventoriesByTagAsync(string tag)
     {
         return await _dbContext.Inventories
@@ -26,10 +70,10 @@ public class InventoryReadRepository : IInventoryReadRepository
     }
 
     public async Task<List<InventoryDTO>> SearchInventoriesAsync(string searchTerm)
-    { 
+    {
         return await _dbContext.Inventories
             .AsNoTracking()
-            .Where(i => 
+            .Where(i =>
                 EF.Functions.ToTsVector("english", i.Title)
                     .Matches(EF.Functions.WebSearchToTsQuery("english", searchTerm)) ||
 

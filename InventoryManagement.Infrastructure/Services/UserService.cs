@@ -17,6 +17,11 @@ public class UserService : IUserService
         _userReadRepository = userReadRepository;
     }
 
+    public async Task<List<UserDTO>> SearchUsersAsync(string q)
+    {
+        return await _userReadRepository.SearchUsersAsync(q);
+    }
+
     public async Task<List<UserDTO>> GetUsersAsync()
     {
         return await _userReadRepository.GetUsersAsync();

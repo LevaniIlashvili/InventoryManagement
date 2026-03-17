@@ -17,6 +17,30 @@ public class InventoryController : ControllerBase
         _inventoryService = inventoryService;
     }
 
+    [HttpDelete("{inventoryId}/access-list/{userIdBeingRemoved}")]
+    [Authorize(Roles = "User,Admin")]
+    public async Task<IActionResult> RemoveUserFromAccessList([FromRoute] Guid inventoryId, [FromRoute] Guid userIdBeingRemoved)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var isAdmin = User.IsInRole("Admin");
+
+        await _inventoryService.RemoveUserFromAccessList(userId, isAdmin, inventoryId, userIdBeingRemoved);
+
+        return NoContent();
+    }
+
+    [HttpPut("{inventoryId}/access-list")]
+    [Authorize(Roles = "User,Admin")]
+    public async Task<IActionResult> AddUserToAccessList([FromRoute] Guid inventoryId, [FromBody] Guid userIdBeingAdded)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var isAdmin = User.IsInRole("Admin");
+
+        await _inventoryService.AddUserToAccessList(userId, isAdmin, inventoryId, userIdBeingAdded);
+
+        return Ok();
+    }
+
     [HttpGet("by-tag")]
     public async Task<ActionResult<List<InventoryDTO>>> GetByTag([FromQuery] string tag)
     {

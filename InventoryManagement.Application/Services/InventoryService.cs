@@ -14,19 +14,72 @@ public class InventoryService : IInventoryService
     private readonly IInventoryTagRepository _inventoryTagRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IInventoryReadRepository _inventoryReadRepository;
+    private readonly IUserReadRepository _userReadRepository;
 
     public InventoryService(
         IInventoryRepository inventoryRepository,
         IInventoryTagRepository inventoryTagRepository,
         IUnitOfWork unitOfWork,
-        IInventoryReadRepository inventoryReadRepository)
+        IInventoryReadRepository inventoryReadRepository,
+        IUserReadRepository userReadRepository)
     {
         _inventoryRepository = inventoryRepository;
         _inventoryTagRepository = inventoryTagRepository;
         _unitOfWork = unitOfWork;
         _inventoryReadRepository = inventoryReadRepository;
+        _userReadRepository = userReadRepository;
     }
-    
+
+    public async Task RemoveUserFromAccessList(Guid removerId, bool isAdmin, Guid inventoryId, Guid userIdBeingRemoved)
+    {
+        var inventory = await _inventoryRepository.GetByIdAsync(inventoryId);
+
+        if (inventory == null)
+        {
+            throw new NotFoundException("Inventory not found");
+        }
+
+        if (!isAdmin && inventory.CreatedBy != removerId)
+            throw new ForbiddenException("You don't have access to the inventory");
+
+        var accessRecord = inventory.AccessList.FirstOrDefault(a => a.UserId == userIdBeingRemoved);
+
+        if (accessRecord == null)
+            throw new BadRequestException("User is not in the access list");
+
+        inventory.AccessList.Remove(accessRecord);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task AddUserToAccessList(Guid adderId, bool isAdmin, Guid inventoryId, Guid userIdBeingAdded)
+    {
+        var inventory = await _inventoryRepository.GetByIdAsync(inventoryId);
+
+        if (inventory == null)
+        {
+            throw new NotFoundException("Inventory not found");
+        }
+
+        if (!isAdmin && inventory.CreatedBy != adderId)
+            throw new ForbiddenException("You don't have access to the inventory");
+
+        var userBeingAdded = await _userReadRepository.GetByIdAsync(userIdBeingAdded);
+
+        if (userBeingAdded == null)
+            throw new NotFoundException("User being added not found");
+
+        if (inventory.AccessList.Any(a => a.UserId == userIdBeingAdded))
+            throw new BadRequestException("User is already in access list");
+
+        inventory.AccessList.Add(new InventoryAccess { 
+                                    InventoryId = inventoryId, 
+                                    UserId = userIdBeingAdded 
+        });
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task<List<InventoryDTO>> GetInventoriesByTagAsync(string tag)
     {
         if (string.IsNullOrWhiteSpace(tag))
@@ -67,32 +120,14 @@ public class InventoryService : IInventoryService
 
     public async Task<GetInventoryResponse> GetByIdAsync(Guid id)
     {
-        var inventory = await _inventoryRepository.GetByIdAsync(id);
+        var inventory = await _inventoryReadRepository.GetByIdAsync(id);
 
         if (inventory == null)
         {
             throw new NotFoundException("Inventory not found");
         }
 
-        return new GetInventoryResponse(
-            inventory.Id,
-            inventory.Title,
-            inventory.Description,
-            inventory.CreatedBy,
-            inventory.CategoryId,
-            inventory.ImageUrl,
-            inventory.IsPublic,
-            inventory.Tags.Select(t => new InventoryTagDTO(t.Id, t.Name)).ToList(),
-            inventory.CustomFields.Select(f => new InventoryCustomFieldDTO(
-                f.Id,
-                f.InventoryId,
-                f.Title,
-                f.Description,
-                f.ShouldBeDisplayed,
-                f.Type,
-                f.Order)).ToList(),
-            inventory.CustomIdElements.Select(e => new CustomIdElementDTO(
-                e.Id, e.Order, e.Type, e.FixedText, e.Format)).ToList());
+        return inventory;
     }
 
     public async Task<Guid> CreateAsync(Guid userId, CreateInventoryRequest request)

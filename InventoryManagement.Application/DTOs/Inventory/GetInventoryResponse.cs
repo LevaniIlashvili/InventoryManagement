@@ -10,4 +10,5 @@ public sealed record GetInventoryResponse(
     bool IsPublic,
     List<InventoryTagDTO> Tags,
     List<InventoryCustomFieldDTO> CustomFields,
-    List<CustomIdElementDTO> CustomIdElements);
+    List<CustomIdElementDTO> CustomIdElements,
+    List<InventoryAccessDTO> accessList);

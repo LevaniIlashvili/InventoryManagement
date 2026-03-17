@@ -47,14 +47,14 @@ public class InventoryItemService : IInventoryItemService
             i.Values.Select(i => new CustomFieldValueDTO(i.Id, i.InventoryCustomFieldId, i.Value)).ToList())).ToList();
     }
 
-    public async Task<Guid> AddItemAsync(Guid userId, AddInventoryItemRequest request)
+    public async Task<Guid> AddItemAsync(Guid userId, bool isAdmin, AddInventoryItemRequest request)
     {
         var inventory = await _inventoryRepository.GetByIdAsync(request.InventoryId);
 
         if (inventory == null)
             throw new NotFoundException("Inventory not found");
 
-        if (!inventory.IsPublic && !inventory.AccessList.Any(a => a.UserId == userId) && inventory.CreatedBy != userId)
+        if (!inventory.IsPublic && !isAdmin && !inventory.AccessList.Any(a => a.UserId == userId) && inventory.CreatedBy != userId)
             throw new ForbiddenException("You don't have write access");
 
         var fieldDictionary = inventory.CustomFields.ToDictionary(f => f.Id, f => f);
@@ -123,7 +123,7 @@ public class InventoryItemService : IInventoryItemService
         return id;
     }
 
-    public async Task RemoveItemsAsync(Guid userId, List<Guid> itemIds)
+    public async Task RemoveItemsAsync(Guid userId, bool isAdmin, List<Guid> itemIds)
     {
         foreach (var itemId in itemIds)
         {
@@ -138,6 +138,7 @@ public class InventoryItemService : IInventoryItemService
                 throw new NotFoundException("Inventory not found");
 
             if (!inventory.IsPublic &&
+                !isAdmin && 
                 !inventory.AccessList.Any(a => a.UserId == userId) &&
                 inventory.CreatedBy != userId)
             {
@@ -150,7 +151,7 @@ public class InventoryItemService : IInventoryItemService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateItemAsync(Guid userId, Guid itemId, List<AddCustomFieldValueDTO> customFields)
+    public async Task UpdateItemAsync(Guid userId, bool isAdmin, Guid itemId, List<AddCustomFieldValueDTO> customFields)
     {
         var item = await _inventoryItemRepository.GetByIdAsync(itemId);
 
@@ -163,6 +164,7 @@ public class InventoryItemService : IInventoryItemService
             throw new NotFoundException("Inventory not found");
 
         if (!inventory.IsPublic &&
+            !isAdmin &&
             !inventory.AccessList.Any(a => a.UserId == userId) &&
             inventory.CreatedBy != userId)
             throw new ForbiddenException("You don't have write access");
