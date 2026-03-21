@@ -24,6 +24,16 @@ public class SupportController : ControllerBase
     [HttpPost("ticket")]
     public async Task<IActionResult> CreateTicket([FromBody] TicketRequest request)
     {
+        string accessToken;
+        try
+        {
+            accessToken = await GetAccessTokenAsync();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Failed to refresh Dropbox token: {ex.Message}");
+        }
+
         var userEmail = User.FindFirst(ClaimTypes.Email)?.Value
                      ?? User.Identity?.Name
                      ?? "UnknownUser";
@@ -42,10 +52,9 @@ public class SupportController : ControllerBase
 
         string json = JsonSerializer.Serialize(ticket);
 
-        var token = _config["Dropbox:AccessToken"];
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://content.dropboxapi.com/2/files/upload");
 
-        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         string folderName = "InventorySupportTickets";
         string fileName = $"ticket_{DateTime.Now:yyyyMMddHHmmss}.json";
@@ -69,6 +78,24 @@ public class SupportController : ControllerBase
             var error = await response.Content.ReadAsStringAsync();
             return StatusCode(500, $"Dropbox upload failed: {error}");
         }
+    }
+
+    private async Task<string> GetAccessTokenAsync()
+    {
+        var parameters = new Dictionary<string, string>
+    {
+        { "grant_type", "refresh_token" },
+        { "refresh_token", _config["Dropbox:RefreshToken"] },
+        { "client_id", _config["Dropbox:AppKey"] },
+        { "client_secret", _config["Dropbox:AppSecret"] }
+    };
+
+        var response = await _httpClient.PostAsync("https://api.dropbox.com/oauth2/token", new FormUrlEncodedContent(parameters));
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        using var doc = JsonDocument.Parse(responseContent);
+        return doc.RootElement.GetProperty("access_token").GetString()
+               ?? throw new Exception("Access token not found in response.");
     }
 }
 
