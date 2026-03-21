@@ -1,12 +1,10 @@
 ﻿using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces.Application;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagement.Api.Controllers;
 
-[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 [ApiController]
 public class UserController : ControllerBase
@@ -19,6 +17,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("search")]
+    [Authorize(Roles = "User,Admin")]
     public async Task<IActionResult> SearchUsers([FromQuery] string q)
     {
         if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
@@ -30,6 +29,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUsers()
     {
         var users = await _userService.GetUsersAsync();
@@ -38,6 +38,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUsers([FromBody] List<string> ids)
     {
         await _userService.DeleteUsersAsync(ids);
@@ -46,6 +47,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("block")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> BlockUsers([FromBody] List<string> ids)
     {
         await _userService.BlockUsersAsync(ids);
@@ -54,6 +56,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("unblock")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UnblockUsers([FromBody] List<string> ids)
     {
         await _userService.UnblockUsersAsync(ids);
@@ -62,6 +65,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("grant-admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GrantAdmins([FromBody] List<string> ids)
     {
         await _userService.GrantRolesAsync(ids, "Admin");
@@ -70,6 +74,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("revoke-admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RevokeAdmins([FromBody] List<string> ids)
     {
         await _userService.RevokeRolesAsync(ids, "Admin");
